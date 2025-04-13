@@ -95,15 +95,15 @@
 .data
 timespecsec:   .dword   0
 timespecnano:  .dword   100000000
-//devmem:	       .asciz  "/dev/gpiomem"
-devmem:	       .asciz  "/dev/mem"
+devmem:	       .asciz  "/dev/gpiomem"
+//devmem:	       .asciz  "/dev/mem"
 memOpnErr:     .asciz  "Failed to open /dev/mem\n"
 memOpnsz:      .word  .-memOpnErr 
 memMapErr:     .asciz  "Failed to map memory\n"
 memMapsz:      .word  .-memMapErr 
 	       .align  4 // relign after strings
-//gpioaddr:      .dword   0x0	// mem address of gpio registers
-gpioaddr:      .dword   0xFE200000	// mem address of gpio registers
+gpioaddr:      .dword   0x0	// mem address of gpio registers
+//gpioaddr:      .dword   0xFE200000	// mem address of gpio registers
 pin17:	       .word   4   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   17  // bit offset in set & clr register
