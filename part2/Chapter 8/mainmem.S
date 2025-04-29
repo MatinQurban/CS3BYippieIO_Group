@@ -15,7 +15,7 @@ _start: mapMem
         GPIODirectionOut pin27
         GPIODirectionOut pin22
         // setup a loop counter for 10 iterations
-        mov         W6, #10
+        mov         W6, #100
 
 loop:   GPIOTurnOn   pin17
         nanoSleep
