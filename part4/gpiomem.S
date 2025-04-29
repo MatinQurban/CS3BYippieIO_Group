@@ -120,21 +120,20 @@
 	lsl	X0, X0, X3		// do the shift
 	AND X1, X2, X0
 	CMP X1, X0
-	B.NE pinoff\@
+	B.NE 1f
 	LDR X0, =\pin
 	ADD X0, X0, #12
 	BL putstring
 	LDR X0, =szPinOn
 	BL putstring
-	B endRead\@
-pinoff\@:
+	B 2f
+1:
 	LDR X0, =\pin
 	ADD X0, X0, #12
 	BL putstring
 	LDR X0, =szPinOff
-	BL putstring
-	
-endRead\@:
+	BL putstring	
+2:
 .endm
 
 .data
