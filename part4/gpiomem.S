@@ -136,7 +136,22 @@
 2:
 .endm
 
+.macro readRowKeyboard pin
+
+		GPIOTurnOn \pin
+        GPIOReadPin   col1
+        GPIOReadPin   col2
+        GPIOReadPin   col3
+        GPIOReadPin   col4
+		nanoSleep
+        LDR X0, =szNewLine
+        BL putstring
+        GPIOTurnOff \pin
+
+.endm
+
 .data
+szNewLine: .asciz "\n"
 timespecsec:   .dword   0
 timespecnano:  .dword   100000000
 devmem:	       .asciz  "/dev/gpiomem"
