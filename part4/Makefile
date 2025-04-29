@@ -27,7 +27,7 @@ FLASHMEMOBJS = mainmem.o
 
 # Default target
 # As the first target in the file, is used when `make` is run without args
-all: flash flashmem
+all: $(EXE)
 
 
 # "Cleaning"
