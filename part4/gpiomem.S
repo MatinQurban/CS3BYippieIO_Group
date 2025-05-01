@@ -98,6 +98,7 @@
 	lsl	X0, X0, X3	// do the shift
 	str	W0, [X2]	// write to the register
 .endm
+
 .macro  GPIOTurnOff   pin, value
 	mov	X2, X9		// address of gpio regs
 	add	X2, X2, #clrregoffset // off set of clr reg
@@ -132,8 +133,25 @@
 	ADD X0, X0, #12
 	BL putstring
 	LDR X0, =szPinOff
-	BL putstring	
+	BL putstring
+	
+	waitPinOff \pin
 2:
+.endm
+
+.macro waitPinOff pin
+waitPinOffLoop:
+	mov	X2, X9			// address of gpio regs
+	add	X2, X2, #0x34 	// off to set reg
+	LDR W2, [X2]
+	mov	X0, #0			// 0 bit to shift into pos
+	ldr	X3, =\pin		// base of pin info table
+	add	X3, X3, #8    	// add offset for shift amt
+	ldr	W3, [X3]        // load shift from table
+	lsl	X0, X0, X3		// do the shift
+	AND X1, X2, X0
+	CMP X1, X0
+	B.NE waitPinOffLoop
 .endm
 
 .macro readRowKeyboard pin
