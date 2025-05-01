@@ -127,6 +127,7 @@
 	BL putstring
 	LDR X0, =szPinOn
 	BL putstring
+	waitPinOff \pin
 	B 2f
 1:
 	LDR X0, =\pin
@@ -135,12 +136,10 @@
 	LDR X0, =szPinOff
 	BL putstring
 	
-	waitPinOff \pin
 2:
 .endm
 
 .macro waitPinOff pin
-waitPinOffLoop:
 	mov	X2, X9			// address of gpio regs
 	add	X2, X2, #0x34 	// off to set reg
 	LDR W2, [X2]
@@ -149,9 +148,11 @@ waitPinOffLoop:
 	add	X3, X3, #8    	// add offset for shift amt
 	ldr	W3, [X3]        // load shift from table
 	lsl	X0, X0, X3		// do the shift
+	
+waitPinOffLoop\@:
 	AND X1, X2, X0
 	CMP X1, X0
-	B.NE waitPinOffLoop
+	B.NE waitPinOffLoop\@
 .endm
 
 .macro readRowKeyboard pin
