@@ -110,31 +110,45 @@
 	str	W0, [X2]	// write to the register
 .endm
 
-.macro GPIOReadPin pin
+.macro GPIOReadPin col, row, boolBlock
 	mov	X2, X9			// address of gpio regs
 	add	X2, X2, #0x34 	// off to set reg
 	LDR W2, [X2]
 	mov	X0, #1			// 1 bit to shift into pos
-	ldr	X3, =\pin		// base of pin info table
+	ldr	X3, =\col		// base of pin info table
 	add	X3, X3, #8    	// add offset for shift amt
 	ldr	W3, [X3]        // load shift from table
 	lsl	X0, X0, X3		// do the shift
 	AND X1, X2, X0
 	CMP X1, X0
 	B.NE 1f
-	LDR X0, =\pin
-	ADD X0, X0, #12
-	BL putstring
+	
 	LDR X0, =szPinOn
 	BL putstring
-	waitPinOff \pin
-	B 2f
-1:
-	LDR X0, =\pin
+	
+	LDR X0, =\row
 	ADD X0, X0, #12
 	BL putstring
-	LDR X0, =szPinOff
+	
+	LDR X0, =\col
+	ADD X0, X0, #12
 	BL putstring
+	
+    LDR X0, =szNewLine
+    BL putstring
+	
+	MOV X0, \boolBlock
+	CMP X0, #0
+	B.EQ 2f
+	
+	waitPinOff \col
+
+1:
+	//LDR X0, =\col
+	//ADD X0, X0, #12
+	//BL putstring
+	//LDR X0, =szPinOff
+	//BL putstring
 	
 2:
 .endm
@@ -150,7 +164,7 @@ waitPinOffLoop\@:
 	mov	X2, X9			// address of gpio regs
 	add	X2, X2, #0x34 	// off to set reg
 	LDR W2, [X2]
-	mov	X0, #1			// 1 bit to shift into pos
+	mov	X0, #1  		// 1 bit to shift into pos
 	ldr	X3, =\pin		// base of pin info table
 	add	X3, X3, #8    	// add offset for shift amt
 	ldr	W3, [X3]        // load shift from table
@@ -164,13 +178,12 @@ waitPinOffLoop\@:
 .macro readRowKeyboard pin
 
 		GPIOTurnOn \pin
-        GPIOReadPin   col1
-        GPIOReadPin   col2
-        GPIOReadPin   col3
-        GPIOReadPin   col4
+		
+        GPIOReadPin   col1, \pin, #1
+        GPIOReadPin   col2, \pin, #1
+        GPIOReadPin   col3, \pin, #1
+        GPIOReadPin   col4, \pin, #1
 		nanoSleep
-        LDR X0, =szNewLine
-        BL putstring
         GPIOTurnOff \pin
 
 .endm
@@ -191,50 +204,50 @@ gpioaddr:      .dword   0x0	// mem address of gpio registers
 
 offsetgplev0: .word 52	// base address for GPLEV0
 
-szPinOn:	.asciz "On "
+szPinOn:	.asciz "Keypress detected: "
 szPinOff:	.asciz "Off "
 
 // OUTPUT PINS
 pin4:	   .word   0   // offset to select register
 	       .word   12  // bit offset in select register
 	       .word   4  // bit offset in set & clr register
-	       .asciz  "4 "
+	       .asciz  "row 1 "
 
 pin17:	   .word   4   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   17  // bit offset in set & clr register
-	       .asciz  "17 "
+	       .asciz  "row 2 "
 	       
 pin22:	   .word   8   // offset to select register
 	       .word   6  // bit offset in select register
 	       .word   22  // bit offset in set & clr register
-	       .asciz  "22 "
+	       .asciz  "row 3 "
 	       	       
 pin27:	   .word   8   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   27  // bit offset in set & clr register
-	       .asciz  "27 "
+	       .asciz  "row 4 "
 	      
 
 // INPUT PINS	       
 col1:	   .word   4   	// offset to select register
 	       .word   24  	// bit offset in select register
 	       .word   18  	// bit offset in set & clr register
-	       .asciz  "18 "
+	       .asciz  "col 1 "
 	       
 col2:	   .word   8   	// offset to select register
 	       .word   9  	// bit offset in select register
 	       .word   23   	// bit offset in set & clr register (figure this out later)
-	       .asciz  "23 "
+	       .asciz  "col 2 "
 	       
 col3:	   .word   8   	// offset to select register
 	       .word   12  	// bit offset in select register
 	       .word   24  	// bit offset in set & clr register
-		   .asciz  "24 "
+		   .asciz  "col 3 "
        
 col4:	   .word   8   	// offset to select register
 	       .word   15  	// bit offset in select register
 	       .word   25  	// bit offset in set & clr register
-	       .asciz  "25 "
+	       .asciz  "col 4 "
 
 .text
