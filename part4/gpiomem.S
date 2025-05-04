@@ -140,19 +140,25 @@
 .endm
 
 .macro waitPinOff pin
+
+	ADD X15, X15, #1
+	ADD X15, X15, #1
+	ADD X15, X15, #1
+	ADD X15, X15, #1
+
+waitPinOffLoop\@:
 	mov	X2, X9			// address of gpio regs
 	add	X2, X2, #0x34 	// off to set reg
 	LDR W2, [X2]
-	mov	X0, #0			// 0 bit to shift into pos
+	mov	X0, #1			// 1 bit to shift into pos
 	ldr	X3, =\pin		// base of pin info table
 	add	X3, X3, #8    	// add offset for shift amt
 	ldr	W3, [X3]        // load shift from table
 	lsl	X0, X0, X3		// do the shift
 	
-waitPinOffLoop\@:
 	AND X1, X2, X0
 	CMP X1, X0
-	B.NE waitPinOffLoop\@
+	B.EQ waitPinOffLoop\@
 .endm
 
 .macro readRowKeyboard pin
