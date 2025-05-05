@@ -22,8 +22,8 @@
 //        readRowKeyboard pin17
 //        readRowKeyboard pin22
 //        readRowKeyboard pin27
-//        subs W6, W6, #1
-//        b.ne  loop
+//        SUBS W6, W6, #1
+//        B.NE  loop
 //   6. _end:
 //        MOV  X0, #0
 //        MOV  X8, #__NR_exit
