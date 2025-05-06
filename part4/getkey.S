@@ -32,33 +32,18 @@
 
 #include "gpiomem.S"	// include macros inside gpiomem.s
 
-.global _start	    // Provide program starting address
+.global getKey	    // Provide program starting address
 
-_start: mapMem		// dev/gpiomem into user space
+getKey: mapMem		// dev/gpiomem into user space
         nanoSleep	// short delay to ensure mapping is ready
 
-    GPIODirectionOut pin4   // Set GPIO4 as output
-    GPIODirectionOut pin17  // Set GPIO17 as output
-    GPIODirectionOut pin27  // Set GPIO27 as output
-    GPIODirectionOut pin22  // Set GPIO22 as output
-
-    GPIODirectionIn col1   	// Set GPIO for keyboard column 1 as input
-    GPIODirectionIn col2   	// Set GPIO for keyboard column 2 as input
-    GPIODirectionIn col3   	// Set GPIO for keyboard column 3 as input
-    GPIODirectionIn col4   	// Set GPIO for keyboard column 4 as input
-
-    // Initialize loop counter
-    MOV W6, #10000         	// Load immediate 10000 into W6 for iteration count
+	initializePins	// initialize the pins
+	
+	readRowKeyboard pin4	// read and process input on pin 4
+	readRowKeyboard pin17	// read and process input on pin 17
+	readRowKeyboard pin22	// read and process input on pin 22
+	readRowKeyboard pin27	// read and process input on pin 27
        
-loop:                         
-    readRowKeyboard pin4 	// Read and process input on pin4
-    readRowKeyboard pin17   // Read and process input on pin17
-    readRowKeyboard pin22   // Read and process input on pin22
-    readRowKeyboard pin27   // Read and process input on pin27
-
-    SUBS W6, W6, #1      	// Decrement W6; update condition flags
-    B.NE loop            	// If W6 != 0, branch back to loop
-
 _end:                      
     MOV X0, #0          	// Set exit code 0 in X0
     MOV X8, #__NR_exit  	// Load exit syscall number into X8

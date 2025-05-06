@@ -201,11 +201,7 @@
 	waitPinOff \col		// block until pin goes low
 
 1:
-	//LDR X0, =\col
-	//ADD X0, X0, #12
-	//BL putstring
-	//LDR X0, =szPinOff
-	//BL putstring
+	MOV X0, #0			// return 0 if there is no keyboard input
 	
 2:
 .endm
@@ -252,7 +248,7 @@ waitPinOffLoop\@:
 //    3. wait a short time
 //    4. set column pin low
 //*****************************************************************
-.macro readRowKeyboard pin
+.macro readRowKeyboard pin, boolBlock
     GPIOTurnOn    \pin           	// set column pin high
     GPIOReadPin   col1, \pin, #1 	// read input on row 1
     GPIOReadPin   col2, \pin, #1 	// read input on row 2
@@ -260,6 +256,31 @@ waitPinOffLoop\@:
     GPIOReadPin   col4, \pin, #1 	// read input on row 4
     nanoSleep                    	// short delay
     GPIOTurnOff   \pin           	// set column pin low
+.endm
+
+//*****************************************************************
+//  Macro:       initializePins
+//  Argument:    pin - pin info table entry symbol
+//				 col - col info
+//
+//  Description: initialize pins and cols to be inputs and outputs
+//
+//  Pseudocode / Algorithm:
+//    1. initialize pins
+//	  2. initalize cols
+//*****************************************************************
+.macro initializePins
+
+    GPIODirectionOut pin4   // Set GPIO4 as output
+    GPIODirectionOut pin17  // Set GPIO17 as output
+    GPIODirectionOut pin27 	// Set GPIO27 as output
+    GPIODirectionOut pin22  // Set GPIO22 as output
+
+    GPIODirectionIn col1   	// Set GPIO for keyboard column 1 as input
+    GPIODirectionIn col2   	// Set GPIO for keyboard column 2 as input
+    GPIODirectionIn col3   	// Set GPIO for keyboard column 3 as input
+    GPIODirectionIn col4   	// Set GPIO for keyboard column 4 as input
+
 .endm
 
 .data
