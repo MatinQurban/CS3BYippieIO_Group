@@ -30,12 +30,25 @@
 
 getKey: mapMem		// dev/gpiomem into user space
         nanoSleep	// short delay to ensure mapping is ready
-
-	initializePins	// initialize the pins
 	
-	readRowKeyboard pin4	// read and process input on pin 4
-	readRowKeyboard pin17	// read and process input on pin 17
-	readRowKeyboard pin22	// read and process input on pin 22
-	readRowKeyboard pin27	// read and process input on pin 27
+	CMP X0, #0
+	B.EQ nonBlocking
+	
+blocking:
+	readRowKeyboard pin4,  #1	// read and process input on pin 4
+	readRowKeyboard pin17, #1	// read and process input on pin 17
+	readRowKeyboard pin22, #1	// read and process input on pin 22
+	readRowKeyboard pin27, #1	// read and process input on pin 27
+	
+	B end_getKey
+	
+nonBlocking:
+	readRowKeyboard pin4,  #0	// read and process input on pin 4
+	readRowKeyboard pin17, #0	// read and process input on pin 17
+	readRowKeyboard pin22, #0	// read and process input on pin 22
+	readRowKeyboard pin27, #0	// read and process input on pin 27
+	
+	b end_getKey
        
+end_getKey:
 	RET 	// return to caller

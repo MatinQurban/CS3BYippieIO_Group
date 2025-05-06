@@ -248,10 +248,10 @@ waitPinOffLoop\@:
 //*****************************************************************
 .macro readRowKeyboard pin, boolBlock
     GPIOTurnOn    \pin           	// set column pin high
-    GPIOReadPin   col1, \pin, #1 	// read input on row 1
-    GPIOReadPin   col2, \pin, #1 	// read input on row 2
-    GPIOReadPin   col3, \pin, #1 	// read input on row 3
-    GPIOReadPin   col4, \pin, #1 	// read input on row 4
+    GPIOReadPin   col1, \pin, \boolBlock 	// read input on row 1
+    GPIOReadPin   col2, \pin, \boolBlock 	// read input on row 2
+    GPIOReadPin   col3, \pin, \boolBlock 	// read input on row 3
+    GPIOReadPin   col4, \pin, \boolBlock 	// read input on row 4
     nanoSleep                    	// short delay
     GPIOTurnOff   \pin           	// set column pin low
 .endm

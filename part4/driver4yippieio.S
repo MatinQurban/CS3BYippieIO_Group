@@ -11,10 +11,13 @@
 //		Start getKey loop
 //		Print resluting key
 
+#include "gpiomem.S"
 
 .global _start	// Provide program starting address
 
 _start:	// program start
+
+		initializePins
 	
 		MOV W6, #100		// Load immediate 100 into W6 for iteration count
 loopBlocking:
@@ -22,7 +25,7 @@ loopBlocking:
 		BL getKey 			// Call getKey, returns value 0-16 in X0
 		
 		SUBS W6, W6, #1		// Decrement W6; update condition flags
-		B.NE loop			// If W6 != 0, branch back to loop
+		B.NE loopBlocking			// If W6 != 0, branch back to loop
 		
 		Mov W6, #100		// Load immediate 100 into W6 for iteration count
 loopNonBlocking:
