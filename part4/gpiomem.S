@@ -151,9 +151,7 @@
 //
 //  Description:
 //  Reads the specified GPIO input pin, and if it is high:
-//  	- Prints "Pin On" message
-//  	- Prints the row label and the column label
-//  	- Emits a newline
+//  	- Prints 0-16 depending on keyboard input
 //  	- Optionally blocks (waits) until the pin goes low if boolBlock != 0
 //
 //  Pseudocode / Algorithm:
@@ -162,13 +160,12 @@
 //    3. shift = load_shift(col)       	// load pins bit position from table
 //    4. mask = 1 << shift             	// create bit mask for this pin
 //    5. if (reg & mask) == mask then   // pin is high
-//         putstring(szPinOn)
-//         putstring(row + label_offset)
-//         putstring(col + label_offset)
-//         putstring(szNewLine)
-//         if boolBlock != 0:
-//           waitPinOff(col)           // block until pin returns low
-//    6. end macro
+//	  6. move address of row and col
+//	  7. add the offsets to position the row and col
+//	  8. load the values
+//	  9. compute row * col
+//	  10. if pin is low, return 0
+//    11. end macro
 //*****************************************************************
 .macro GPIOReadPin col, row, boolBlock
 	MOV	X2, X9			// address of gpio regs
@@ -202,7 +199,7 @@
 
 1:
 	MOV X0, #0			// return 0 if there is no keyboard input
-	
+
 2:
 .endm
 
@@ -242,6 +239,7 @@ waitPinOffLoop\@:
 //
 //  Description: Enable a keyboard column pin, read all row inputs,
 //               then disable the column.
+//
 //  Pseudocode / Algorithm:
 //    1. set column pin high
 //    2. for each row (col1 - col4): call GPIOReadPin to read state
@@ -263,7 +261,7 @@ waitPinOffLoop\@:
 //  Argument:    pin - pin info table entry symbol
 //				 col - col info
 //
-//  Description: initialize pins and cols to be inputs and outputs
+//  Description: initialize pins and cols to be inputs and/or outputs
 //
 //  Pseudocode / Algorithm:
 //    1. initialize pins

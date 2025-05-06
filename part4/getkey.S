@@ -13,18 +13,12 @@
 //  Pseudocode / Algorithm (based off the authors implementation):
 //   1. mapMem         map GPIO peripheral into user space
 //   2. nanoSleep      short delay after mapping
-//   3. Configure pins:
-//        GPIODirectionOut pin4, pin17, pin27, pin22
-//        GPIODirectionIn col1, col2, col3, col4
-//   4. MOV W6, #10000 set up loop counter
-//   5. loop:
-//        readRowKeyboard pin4
+//   3. Configure pins: call initalizePins macro
+//   4.   readRowKeyboard pin4
 //        readRowKeyboard pin17
 //        readRowKeyboard pin22
 //        readRowKeyboard pin27
-//        SUBS W6, W6, #1
-//        B.NE  loop
-//   6. _end:
+//   5. _end:
 //        MOV  X0, #0
 //        MOV  X8, #__NR_exit
 //        SVC  #0 
@@ -44,7 +38,4 @@ getKey: mapMem		// dev/gpiomem into user space
 	readRowKeyboard pin22	// read and process input on pin 22
 	readRowKeyboard pin27	// read and process input on pin 27
        
-_end:                      
-    MOV X0, #0          	// Set exit code 0 in X0
-    MOV X8, #__NR_exit  	// Load exit syscall number into X8
-    SVC #0               	// Trigger syscall to terminate program
+	RET 	// return to caller
