@@ -182,24 +182,21 @@
 	AND X1, X2, X0		// test bit in level register
 	CMP X1, X0			// compare X1 - X0
 	B.NE 1f				// if not equal, pin is low
-	
-	LDR X0, =szPinOn	// load address of szPinOn
-	BL putstring		// call putstring
-	
-	LDR X0, =\row		// load address of the row
-	ADD X0, X0, #12		// offset
-	BL putstring		// call putstring
-	
-	LDR X0, =\col		// load address of column
-	ADD X0, X0, #12		// offset
-	BL putstring		// call putstring
-	
-    LDR X0, =szNewLine	// load address of new line
-    BL putstring		// call putstring
-	
+		
 	MOV X0, \boolBlock	// mov boolBlock value into X0
 	CMP X0, #0			// compare it with 0
 	B.EQ 2f				// if 0, then don't block
+	
+	MOV W0, \row		// move address of row
+	MOV W1, \col		// move address of col
+	
+	ADD X0, X0, #12		// add offset to position row value
+	ADD X1, X1, #12		// add offset to position col value
+	
+	LDR W0, [X0]		// load value of row
+	LDR W1, [X1]		// load value of col
+		
+	SMULL X0, W0, W1	// return value = col * row
 	
 	waitPinOff \col		// block until pin goes low
 
@@ -288,43 +285,43 @@ szPinOff:	.asciz "Off "
 pin4:	   .word   0   // offset to select register
 	       .word   12  // bit offset in select register
 	       .word   4   // bit offset in set & clr register
-	       .asciz  "row 1 "
+	       .word   1
 
 pin17:	   .word   4   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   17  // bit offset in set & clr register
-	       .asciz  "row 2 "
+	       .word   2
 	       
 pin22:	   .word   8   // offset to select register
 	       .word   6   // bit offset in select register
 	       .word   22  // bit offset in set & clr register
-	       .asciz  "row 3 "
+	       .word   3
 	       	       
 pin27:	   .word   8   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   27  // bit offset in set & clr register
-	       .asciz  "row 4 "
+	       .word   4
 	      
 
 // INPUT PINS	       
 col1:	   .word   4   	// offset to select register
 	       .word   24  	// bit offset in select register
 	       .word   18  	// bit offset in set & clr register
-	       .asciz  "col 1 "
+	       .word   1
 	       
 col2:	   .word   8   	// offset to select register
 	       .word   9  	// bit offset in select register
 	       .word   23   // bit offset in set & clr register (figure this out later)
-	       .asciz  "col 2 "
+	       .word   2
 	       
 col3:	   .word   8   	// offset to select register
 	       .word   12  	// bit offset in select register
 	       .word   24  	// bit offset in set & clr register
-		   .asciz  "col 3 "
+		   .word   3
        
 col4:	   .word   8   	// offset to select register
 	       .word   15  	// bit offset in select register
 	       .word   25  	// bit offset in set & clr register
-	       .asciz  "col 4 "
+	       .word   4
 
 .text
