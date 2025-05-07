@@ -184,8 +184,8 @@
 	CMP X0, #0			// compare it with 0
 	B.EQ 2f				// if 0, then don't block
 	
-	MOV W0, \row		// move address of row
-	MOV W1, \col		// move address of col
+	LDR W0, =\row		// move address of row
+	LDR W1, =\col		// move address of col
 	
 	ADD X0, X0, #12		// add offset to position row value
 	ADD X1, X1, #12		// add offset to position col value
@@ -194,7 +194,7 @@
 	LDR W1, [X1]		// load value of col
 		
 	SMULL X0, W0, W1	// return value = col * row
-	
+
 	waitPinOff \col		// block until pin goes low
 
 1:
@@ -252,8 +252,15 @@ waitPinOffLoop\@:
     GPIOReadPin   col2, \pin, \boolBlock 	// read input on row 2
     GPIOReadPin   col3, \pin, \boolBlock 	// read input on row 3
     GPIOReadPin   col4, \pin, \boolBlock 	// read input on row 4
-    nanoSleep                    	// short delay
-    GPIOTurnOff   \pin           	// set column pin low
+    
+    STR X15, [SP, #-16]!
+    MOV X15, X0
+    nanoSleep                   // short delay
+    GPIOTurnOff \pin           	// set column pin low
+    
+    MOV X0, X15
+    LDR X15, [SP], #16
+    
 .endm
 
 //*****************************************************************
@@ -268,6 +275,9 @@ waitPinOffLoop\@:
 //	  2. initalize cols
 //*****************************************************************
 .macro initializePins
+
+	mapMem
+	nanoSleep
 
     GPIODirectionOut pin4   // Set GPIO4 as output
     GPIODirectionOut pin17  // Set GPIO17 as output

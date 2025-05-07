@@ -12,7 +12,7 @@
 # Authors: Kaveh Zare, modified and documented by Matthew Reese
 # Last Modified: 2/12/2025
 
-EXE := flashmem  # Executable name
+EXE := yippieio4.out  # Executable name
 #      ^^^^^^--- Change this to the name of the lab executable / library archive
 
 ASFLAGS := -g  # Flags for `as`; -g for debug symbols
