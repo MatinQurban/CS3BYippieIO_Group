@@ -168,6 +168,7 @@
 //    11. end macro
 //*****************************************************************
 .macro GPIOReadPin col, row, boolBlock
+1:
 	MOV	X2, X9			// address of gpio regs
 	ADD	X2, X2, #0x34 	// offset to GPLEV regiser
 	LDR W2, [X2]		// read level bits
@@ -179,58 +180,31 @@
 	AND X1, X2, X0		// test bit in level register
 	CMP X1, X0			// compare X1 - X0
 	B.NE 1f				// if not equal, pin is low
-		
-	MOV X0, \boolBlock	// mov boolBlock value into X0
-	CMP X0, #0			// compare it with 0
-	B.EQ 2f				// if 0, then don't block
-	
-	LDR W0, =\row		// move address of row
-	LDR W1, =\col		// move address of col
-	
-	ADD X0, X0, #12		// add offset to position row value
-	ADD X1, X1, #12		// add offset to position col value
-	
-	LDR W0, [X0]		// load value of row
-	LDR W1, [X1]		// load value of col
-		
-	SMULL X0, W0, W1	// return value = col * row
 
-	waitPinOff \col		// block until pin goes low
-
+	MOV X4, \boolBlock	// return 0 if there is no keyboard input
+	
+    LDR W0, =\row        	// move address of row
+    LDR W1, =\col        	// move address of col
+    ADD X0, X0, #12     	// add offset to position row value
+    ADD X1, X1, #12     	// add offset to position col value
+    LDR W0, [X0]       		// load value of row
+    LDR W1, [X1]        	// load value of col
+    
+    MOV X2, #4				// X2 will be used for row multiplier
+    SMULL X5, W0, W2		// (4 * row)
+    ADD X5, X5, X1			// keyboard value = (4 * row) + col
+	
+	CMP X4, #1
+	B.EQ 1b
+	
 1:
-	MOV X0, #0			// return 0 if there is no keyboard input
+	CMP X5, #0
+	B.EQ 2f
+
+	//CMP X4, #1
+	//B.EQ endReadRowKeyboard\@
 
 2:
-.endm
-
-//*****************************************************************
-//  Macro:       waitPinOff
-//  Argument:    pin - pin info table entry symbol
-//
-//  Description: Poll until the specified GPIO input pin reads low,
-//               with a short initial delay before polling.
-//
-//  Pseudocode / Algorithm:
-//    1. loop:
-//         a. read GPIO level register
-//         b. compute mask for the pin bit
-//         c. if (level & mask) != mask then exit loop
-//         d. else repeat loop
-//*****************************************************************
-.macro waitPinOff pin
-
-waitPinOffLoop\@:
-	MOV	X2, X9			// address of gpio regs
-	ADD	X2, X2, #0x34 	// off to set reg
-	LDR W2, [X2]		// read levels
-	MOV	X0, #1  		// 1 bit to shift into pos
-	LDR	X3, =\pin		// base of pin info table
-	ADD	X3, X3, #8    	// add offset for shift amt
-	LDR	W3, [X3]        // load shift from table
-	LSL	X0, X0, X3		// do the shift
-	AND X1, X2, X0		// isolate pin's bit
-	CMP X1, X0			// check if the pin bit is set
-	B.EQ waitPinOffLoop\@	// loop if it's set
 .endm
 
 //*****************************************************************
@@ -247,19 +221,24 @@ waitPinOffLoop\@:
 //    4. set column pin low
 //*****************************************************************
 .macro readRowKeyboard pin, boolBlock
+    //STR X15, [SP, #-16]!
+    //MOV X15, #0
+    
     GPIOTurnOn    \pin           	// set column pin high
+    
+    MOV X5, #0
     GPIOReadPin   col1, \pin, \boolBlock 	// read input on row 1
     GPIOReadPin   col2, \pin, \boolBlock 	// read input on row 2
     GPIOReadPin   col3, \pin, \boolBlock 	// read input on row 3
-    GPIOReadPin   col4, \pin, \boolBlock 	// read input on row 4
-    
-    STR X15, [SP, #-16]!
-    MOV X15, X0
+    GPIOReadPin   col4, \pin, \boolBlock 	// read input on row 4  
+	
     nanoSleep                   // short delay
     GPIOTurnOff \pin           	// set column pin low
     
-    MOV X0, X15
-    LDR X15, [SP], #16
+    //MOV X0, X15
+    //LDR X15, [SP], #16
+    
+endReadRowKeyboard\@:
     
 .endm
 
@@ -314,22 +293,22 @@ szPinOff:	.asciz "Off "
 pin4:	   .word   0   // offset to select register
 	       .word   12  // bit offset in select register
 	       .word   4   // bit offset in set & clr register
-	       .word   1
+	       .word   0
 
 pin17:	   .word   4   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   17  // bit offset in set & clr register
-	       .word   2
+	       .word   1
 	       
 pin22:	   .word   8   // offset to select register
 	       .word   6   // bit offset in select register
 	       .word   22  // bit offset in set & clr register
-	       .word   3
+	       .word   2
 	       	       
 pin27:	   .word   8   // offset to select register
 	       .word   21  // bit offset in select register
 	       .word   27  // bit offset in set & clr register
-	       .word   4
+	       .word   3
 	      
 
 // INPUT PINS	       
