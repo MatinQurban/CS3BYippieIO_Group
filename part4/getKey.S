@@ -61,12 +61,12 @@ blocking:
 	CMP X0, #0		// Compare return value to 0 (no input)
 	B.EQ blocking	// If no keyboard input, loop until key press detected
 	
-	MOV X2, #0			// Move immediate value 0 into X2
-	LDR X1, =szBuffer	// Load address of szBuffer
-	STR X2, [X1]		// Clear szBuffer
-	BL int2cstr			// branch link int2cstr, convert X0 to string and store in X1 string buffer
+	//MOV X2, #0			// Move immediate value 0 into X2
+	//LDR X1, =szBuffer	// Load address of szBuffer
+	//STR X2, [X1]		// Clear szBuffer
+	//BL int2cstr			// branch link int2cstr, convert X0 to string and store in X1 string buffer
 
-	printLine szBuffer	// Print string buffer
+	//printLine szBuffer	// Print string buffer
 	
 	B end_getKey		// End getKey
 
@@ -84,12 +84,12 @@ nonBlocking:
 	ADD X6, X6, X5	//readRowKeyboard will store key value in X5, move to X6 to prepare for next call, add to account for 0
 	
 	MOV X0, X6			// Copy keyboard value into X0 for int2cstr call
-	MOV X2, #0			// Move immediate value 0 into X2
-	LDR X1, =szBuffer	// Load address of szBuffer
-	STR X2, [X1]		// Store 0 in szBuffer (clear buffer)
-	BL int2cstr			// call int2cstr: Convert int X0 to cstr and store in X1 string buffer
+	//MOV X2, #0			// Move immediate value 0 into X2
+	//LDR X1, =szBuffer	// Load address of szBuffer
+	//STR X2, [X1]		// Store 0 in szBuffer (clear buffer)
+	//BL int2cstr			// call int2cstr: Convert int X0 to cstr and store in X1 string buffer
 	
-	printLine szBuffer	// Print string buffer
+	//printLine szBuffer	// Print string buffer
 	
 	B end_getKey		// End getKey
 

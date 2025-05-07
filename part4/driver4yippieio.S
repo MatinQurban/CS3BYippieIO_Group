@@ -26,17 +26,17 @@
 
 _start:	// program start
 
-		initializePins	// Map function registers and Initialize direction of pins
+		initializePins		// Map function registers and Initialize direction of pins
 	
-		MOV W11, #5		// Load immediate 10 into W6 for iteration count
+		MOV W11, #5			// Load immediate 5 into W6 for iteration count
 loopBlocking:
 		MOV X0, #1			// getKey uses X0 to denote blocking or nonblocking
 		BL getKey 			// Call getKey, returns value 0-16 in X0
 		
-		SUBS W11, W11, #1		// Decrement W6; update condition flags
-		B.NE loopBlocking			// If W6 != 0, branch back to loop
+		SUBS W11, W11, #1	// Decrement W6; update condition flags
+		B.NE loopBlocking	// If W6 != 0, branch back to loop
 		
-		MOV W11, #25		// Load immediate 100 into W6 for iteration count
+		MOV W11, #30		// Load immediate 30 into W6 for iteration count
 		
 		printLine szModeSeparator	// Output szModeSeparator to console
 		
