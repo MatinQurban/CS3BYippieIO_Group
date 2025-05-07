@@ -4,12 +4,13 @@
 
 // Desc: This program will use call get key and print the 
 //		 value of the key pressed (1-16) in both blocking
-//		 and non-blocking modes
+//		 and non-blocking modes. If no key is pressed in
+//		 non-blocking mode, will continuously output 0.
 
 // Algo:
-//		Prompt user for blocking mode
-//		Start getKey loop
-//		Print resluting key
+//		For each mode:
+//		Start getKey loop 
+//		Print resluting key (1-16 for blocking, 0-16 for nonblocking)
 
 #include "gpiomem.S"
 
@@ -18,14 +19,14 @@
         LDR X0, =\stringBuff    // Load address of string buffer
         BL putstring            // print string to console
         LDR X0, =szEOL            // Load address of EOL
-        BL putstring 
+        BL putstring 			// print new line
 .endm
 
 .global _start	// Provide program starting address
 
 _start:	// program start
 
-		initializePins
+		initializePins	// Map function registers and Initialize direction of pins
 	
 		MOV W11, #5		// Load immediate 10 into W6 for iteration count
 loopBlocking:
@@ -37,7 +38,7 @@ loopBlocking:
 		
 		MOV W11, #25		// Load immediate 100 into W6 for iteration count
 		
-		printLine szModeSeparator
+		printLine szModeSeparator	// Output szModeSeparator to console
 		
 loopNonBlocking:
 		MOV X0, #0				// getKey uses X0 for blocking mode

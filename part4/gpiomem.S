@@ -1,5 +1,5 @@
 //*****************************************************************
-//  Sean Viravouth, Matin Qurban
+//  Sean Viravouth, Matin Qurbanzadeh
 //  CS3B - Yippie IO: Part 4 - Keypad input detection
 //  05/06/2025
 //
@@ -151,7 +151,7 @@
 //
 //  Description:
 //  Reads the specified GPIO input pin, and if it is high:
-//  	- Prints 0-16 depending on keyboard input
+//  	- Returns 0-16 in X5 depending on keyboard input
 //  	- Optionally blocks (waits) until the pin goes low if boolBlock != 0
 //
 //  Pseudocode / Algorithm:
@@ -160,12 +160,13 @@
 //    3. shift = load_shift(col)       	// load pins bit position from table
 //    4. mask = 1 << shift             	// create bit mask for this pin
 //    5. if (reg & mask) == mask then   // pin is high
-//	  6. move address of row and col
-//	  7. add the offsets to position the row and col
-//	  8. load the values
-//	  9. compute row * col
-//	  10. if pin is low, return 0
-//    11. end macro
+//	  6. if pin is low, end read
+//	  7. move address of row and col
+//	  8. add the offsets to position the row and col
+//	  9. load the values of row(0-3) and col(1-4)
+//	  10. compute and save keyboard value: (4 * row) + col
+//	  11. Check block mode: if block, loop until low
+//    12. end macro
 //*****************************************************************
 .macro GPIOReadPin col, row, boolBlock
 1:
@@ -179,9 +180,9 @@
 	LSL	X0, X0, X3		// do the shift
 	AND X1, X2, X0		// test bit in level register
 	CMP X1, X0			// compare X1 - X0
-	B.NE 1f				// if not equal, pin is low
+	B.NE 1f				// if not equal, pin is low, exit read
 
-	MOV X4, \boolBlock	// return 0 if there is no keyboard input
+	MOV X4, \boolBlock		// X4 is going to be our block flag register
 	
     LDR W0, =\row        	// move address of row
     LDR W1, =\col        	// move address of col
@@ -194,15 +195,15 @@
     SMULL X5, W0, W2		// (4 * row)
     ADD X5, X5, X1			// keyboard value = (4 * row) + col
 	
-	CMP X4, #1
-	B.EQ 1b
+	CMP X4, #1				// Check if we are blocking
+	B.EQ 1b					// If blocking, loop again until input changes
 	
 1:
-	CMP X5, #0
-	B.EQ 2f
+	CMP X5, #0				// Check if we read into pin
+	B.EQ 2f					// keyboard value is 0, we have read nothing, move to next read
 
-	//CMP X4, #1
-	//B.EQ endReadRowKeyboard\@
+	//CMP X4, #1			// Check if we are blocking
+	//B.EQ endReadRowKeyboard\@	// If we are here and blocking, it means we have read a pin already. Skip next reads
 
 2:
 .endm
@@ -211,34 +212,29 @@
 //  Macro:       readRowKeyboard
 //  Argument:    pin - pin info table entry symbol
 //
-//  Description: Enable a keyboard column pin, read all row inputs,
-//               then disable the column.
+//  Description: Enable a keyboard row pin, read all column inputs,
+//               then disable the row.
 //
 //  Pseudocode / Algorithm:
-//    1. set column pin high
-//    2. for each row (col1 - col4): call GPIOReadPin to read state
+//    1. set row pin high
+//    2. for each column: call GPIOReadPin to read state
 //    3. wait a short time
-//    4. set column pin low
+//    4. set row pin low
 //*****************************************************************
 .macro readRowKeyboard pin, boolBlock
-    //STR X15, [SP, #-16]!
-    //MOV X15, #0
-    
-    GPIOTurnOn    \pin           	// set column pin high
+
+    GPIOTurnOn    \pin           	// set row pin high
     
     MOV X5, #0
-    GPIOReadPin   col1, \pin, \boolBlock 	// read input on row 1
-    GPIOReadPin   col2, \pin, \boolBlock 	// read input on row 2
-    GPIOReadPin   col3, \pin, \boolBlock 	// read input on row 3
-    GPIOReadPin   col4, \pin, \boolBlock 	// read input on row 4  
+    GPIOReadPin   col1, \pin, \boolBlock 	// read input on col 1
+    GPIOReadPin   col2, \pin, \boolBlock 	// read input on col 2
+    GPIOReadPin   col3, \pin, \boolBlock 	// read input on col 3
+    GPIOReadPin   col4, \pin, \boolBlock 	// read input on col 4  
 	
     nanoSleep                   // short delay
     GPIOTurnOff \pin           	// set column pin low
     
-    //MOV X0, X15
-    //LDR X15, [SP], #16
-    
-endReadRowKeyboard\@:
+//endReadRowKeyboard\@:
     
 .endm
 
@@ -255,8 +251,8 @@ endReadRowKeyboard\@:
 //*****************************************************************
 .macro initializePins
 
-	mapMem
-	nanoSleep
+	mapMem					// map virtual registers to memory address
+	nanoSleep				// delay
 
     GPIODirectionOut pin4   // Set GPIO4 as output
     GPIODirectionOut pin17  // Set GPIO17 as output
