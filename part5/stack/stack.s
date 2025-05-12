@@ -14,7 +14,7 @@ STACK_TOTAL_SIZE:	.quad 0	// total size of stack (data * len)
 //		X0: size (number of elements)
 //		X1: data_size (size of each element in bytes)
 //	Return:
-//		X0: pointer to base of allocated stack memory (base_ptr = stack_ptr)
+//		None
 //	Algorithm:
 //		- Multiply size * data_size to get total size in bytes
 //		- Call malloc(total size) to allocate memory
@@ -30,9 +30,9 @@ STACK_TOTAL_SIZE:	.quad 0	// total size of stack (data * len)
 stackConstructor:
     STR LR, [SP, #-16]!       // Save LR
 	LDR X2, =STACK_TOTAL_LEN	// Load address of stack length
-	STR X1, [X2]			  // Store size into variable stack_length
+	STR X0, [X2]			  // Store size into variable stack_length
 	LDR X2, =STACK_DATA_SIZE	// Load address of stack data size
-	STR X0, [X1]			  // Store data size into variable data_size
+	STR X1, [X2]			  // Store data size into variable data_size
 
     MUL X2, X0, X1            // X2 = size * data_size
 	LDR X1, =STACK_TOTAL_SIZE 	// Load address of stack total size
@@ -78,9 +78,8 @@ stackDestructor:
 
 // ****************** STACK FUNCTION : stackPush ********************
 //	Description: Pushes a double value onto the stack if space is available
-//	Function Definition: bool stackPush(Stack* stack, double value)
+//	Function Definition: bool stackPush(double value)
 //	Parameters:
-//		X0: Pointer to Stack object
 //		D0: Value to push (double)
 //	Return:
 //		W0: 0 if stack is full (push failed), 1 if push succeeded
