@@ -28,7 +28,7 @@ _start:	// program start
 
 		initializePins		// Map function registers and Initialize direction of pins
 	
-		MOV W11, #5			// Load immediate 5 into W6 for iteration count
+		MOV W11, #16			// Load immediate 5 into W6 for iteration count
 loopBlocking:
 		MOV X0, #1			// getKey uses X0 to denote blocking or nonblocking
 		BL getKey 			// Call getKey, returns value 0-16 in X0
