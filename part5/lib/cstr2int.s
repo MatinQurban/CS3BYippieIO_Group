@@ -39,7 +39,7 @@ cstr2int:
 	CMP X1, X2
 	B.EQ largestPos
 
-	LDR     X1, =szMaxNegative
+	LDR     X1, =szMaxNegative	  // "-9223372036854775808"
 	LDR X2, [X0]
 	LDR X1, [X1]
 	CMP X1, X2
@@ -80,9 +80,10 @@ szLoop:
     B.LT szOverflow      // If overflow, branch to overflow handler
     MOV X0, X6           // Update result
     
+// This line causes errors, comment out for now
     // Check if adding the digit would cause overflow
-    CMP X2, #1           // Check if number is negative
-    B.EQ szNegCheck      // Branch to negative check
+    //CMP X2, #1           // Check if number is negative
+    //B.EQ szNegCheck      // Branch to negative check
 
     // Check for positive overflow
     SUB X6, X7, X0       // X6 = MAX_INT - result
@@ -106,7 +107,7 @@ szDone:
     
     // Negate the result for negative numbers
     NEG X0, X0           // X0 = -X0
-   
+   	B szReturn			 // After negating, done
 largestPos:
     MOV     X0, #0x7FFFFFFFFFFFFFFF
     RET
