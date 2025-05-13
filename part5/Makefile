@@ -18,7 +18,7 @@ EXE := clac.out  # Executable name
 ASFLAGS := -g  # Flags for `as`; -g for debug symbols
 LDFLAGS :=     # Flags for `ld`
 
-LIBS := lib/genLib.a                # Library files to link in the final build step
+LIBS := lib/genLib.a    /usr/lib/aarch64-linux-gnu/libc.so              # Library files to link in the final build step
 SRCS := $(wildcard *.s *.S)  # Source files; Matches all files in directory with `.s` extension
 OBJS := $(patsubst %.s,%.o,$(patsubst %.S,%.o,$(SRCS)))   # Object files; Substitutes `.s` for `.o` for all sources (ex: "lab7-3.s" -> "lab7-3.o")
 
