@@ -50,8 +50,6 @@
 	mov		X8, #__NR_mmap	// mmap service num
 	svc		0		// call service
 	ADDS		X9, XZR, X0	// keep the returned virtual address
-	LDR X1, =gpioRegAddr	// load gpio virtual address storage
-	STR X9, [X1]			// saving virtual address into storage
 	// check for error and print error msg if necessary
 	B.PL		2f  // pos number file opened ok
 	MOV		X1, #1  // stdout
@@ -235,9 +233,6 @@
 //    4. set row pin low
 //*****************************************************************
 .macro readRowKeyboard pin, boolBlock
-	
-	LDR X2, =gpioRegAddr	// load storage address
-	LDR X9, [X2]			// loading value of virtual address
 
     GPIOTurnOn    \pin           	// set row pin high
     
@@ -297,7 +292,7 @@ gpioaddr:      .dword   0x0	// mem address of gpio registers
 //gpioaddr:    .dword   0xFE200000	// mem address of gpio registers
 
 offsetgplev0: .word 52	// base address for GPLEV0
-gpioRegAddr: .quad 0
+
 
 szPinOn:	.asciz "Keypress detected: "
 szPinOff:	.asciz "Off "

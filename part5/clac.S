@@ -54,7 +54,9 @@ _start:
     
     .text   // code section
         
-    initializePins 		        // Macro: configure and map GPIO pins for keypad scanning
+    initializePins 		    // Macro: configure and map GPIO pins for keypad scanning
+	LDR X1, =gpioRegAddr	// load gpio virtual address storage
+	STR X9, [X1]			// saving virtual address into storage
     
     MOV X0, #DATA_SZ
     MOV X1, #STACK_SZ
@@ -71,8 +73,10 @@ _start:
 
     // Main input loop: process keypad inputs
 clac_loop:
+	LDR X1, =gpioRegAddr	// load gpio virtual address storage
+	LDR X9, [X1]
     MOV X0, #1 		            // Place 1 into X0 to indicate blocking mode for getKey
-    BL getKey    	            // Call getKey: waits for a keypad press, returns raw code (1-16) in X0
+    BL getKey    	            // Call getKey: waits for a keypad press, returns raw code (1-16) in X0    
 
     // Convert raw keypad code (1-16) into its ASCII character from keyMap
     SUB X0, X0, #1   	        // Decrement X0 by 1 to convert to 0-based index (0-15)
@@ -172,15 +176,15 @@ do_addition:
     // Pop first value
     BL pop                      // Call pop to get first value from stack
     
-    MOV X19, X0                 // Save first value in X19
+    FMOV D19, D0                 // Save first value in X19
     
     // Pop second value
     BL pop                      // Call pop to get second value
     
-    MOV X20, X0                 // Save second value in X20
+    FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point addition directly
-    ADD X0, X20, X19            // Add X19 to X20, store in X0
+    FADD D0, D20, D19            // Add X19 to X20, store in X0
     
     // Push result back to stack
     BL push                     // Push result to stack
@@ -190,7 +194,7 @@ do_addition:
     BL putstring                // Print the message
     
     // Print first operand
-    FMOV D0, X20                // Move first operand to D0
+    FMOV D0, D20                // Move first operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -199,7 +203,7 @@ do_addition:
     BL putstring                // Print the operator
     
     // Print second operand
-    FMOV D0, X19                // Move second operand to D0
+    FMOV D0, D19                // Move second operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -211,15 +215,15 @@ do_addition:
     BL pop                      // Pop the result we just pushed
     
     // Save result for re-pushing
-    MOV X21, X0                 // Save result in X21
+    FMOV D21, D0                 // Save result in X21
     
     // Print the value
-    FMOV D0, X21                // Move result to D0
+    FMOV D0, D21                // Move result to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
     // Push result back to stack
-    MOV X0, X21                 // Restore result from X21
+    FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
     
     B clac_loop                 // Branch back to input loop
@@ -229,15 +233,15 @@ do_subtraction:
     // Pop first value (subtrahend)
     BL pop                      // Call pop to get first value
     
-    MOV X19, X0                 // Save first value in X19
+    FMOV D19, D0                 // Save first value in X19
     
     // Pop second value (minuend)
     BL pop                      // Call pop to get second value
     
-    MOV X20, X0                 // Save second value in X20
+    FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point subtraction directly
-    SUB X0, X20, X19            // Subtract X19 from X20, store in X0
+    FSUB D0, D20, D19            // Subtract X19 from X20, store in X0
     
     // Push result back to stack
     BL push                     // Push result to stack
@@ -247,7 +251,7 @@ do_subtraction:
     BL putstring                // Print the message
     
     // Print first operand
-    FMOV D0, X20                // Move first operand to D0
+    FMOV D0, D20                // Move first operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -256,7 +260,7 @@ do_subtraction:
     BL putstring                // Print the operator
     
     // Print second operand
-    FMOV D0, X19                // Move second operand to D0
+    FMOV D0, D19                // Move second operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -268,15 +272,15 @@ do_subtraction:
     BL pop                      // Pop the result we just pushed
     
     // Save result for re-pushing
-    MOV X21, X0                 // Save result in X21
+    FMOV D21, D0                 // Save result in X21
     
     // Print the value
-    FMOV D0, X21                // Move result to D0
+    FMOV D0, D21                // Move result to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
     // Push result back to stack
-    MOV X0, X21                 // Restore result from X21
+    FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
     
     B clac_loop                 // Branch back to input loop
@@ -286,15 +290,15 @@ do_multiplication:
     // Pop first value
     BL pop                      // Call pop to get first value
     
-    MOV X19, X0                 // Save first value in X19
+    FMOV D19, D0                 // Save first value in X19
     
     // Pop second value
     BL pop                      // Call pop to get second value
     
-    MOV X20, X0                 // Save second value in X20
+    FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point multiplication directly
-    MUL X0, X20, X19            // Multiply X20 by X19, store in X0
+    FMUL D0, D20, D19            // Multiply X20 by X19, store in X0
     
     // Push result back to stack
     BL push                     // Push result to stack
@@ -304,7 +308,7 @@ do_multiplication:
     BL putstring                // Print the message
     
     // Print first operand
-    FMOV D0, X20                // Move first operand to D0
+    FMOV D0, D20                // Move first operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -313,7 +317,7 @@ do_multiplication:
     BL putstring                // Print the operator
     
     // Print second operand
-    FMOV D0, X19                // Move second operand to D0
+    FMOV D0, D19                // Move second operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -325,15 +329,15 @@ do_multiplication:
     BL pop                      // Pop the result we just pushed
     
     // Save result for re-pushing
-    MOV X21, X0                 // Save result in X21
+    FMOV D21, D0                 // Save result in X21
     
     // Print the value
-    FMOV D0, X21                // Move result to D0
+    FMOV D0, D21                // Move result to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
     // Push result back to stack
-    MOV X0, X21                 // Restore result from X21
+    FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
     
     B clac_loop                 // Branch back to input loop
@@ -343,7 +347,7 @@ do_division:
     // Pop first value (divisor)
     BL pop                      // Call pop to get divisor
     
-    MOV X19, X0                 // Save divisor in X19
+    FMOV D19, D0                 // Save divisor in X19
     
     // Check for division by zero
     CMP X19, #0                 // Compare divisor with 0
@@ -352,10 +356,10 @@ do_division:
     // Pop second value (dividend)
     BL pop                      // Call pop to get dividend
     
-    MOV X20, X0                 // Save dividend in X20
+    FMOV D20, D0                 // Save dividend in X20
     
     // Perform floating point division directly
-    SDIV X0, X20, X19           // Divide X20 by X19, store in X0
+    FDIV D0, D20, D19           // Divide X20 by X19, store in X0
     
     // Push result back to stack
     BL push                     // Push result to stack
@@ -365,7 +369,7 @@ do_division:
     BL putstring                // Print the message
     
     // Print first operand
-    FMOV D0, X20                // Move first operand to D0
+    FMOV D0, D20                // Move first operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -374,7 +378,7 @@ do_division:
     BL putstring                // Print the operator
     
     // Print second operand
-    FMOV D0, X19                // Move second operand to D0
+    FMOV D0, D19                // Move second operand to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
@@ -386,15 +390,15 @@ do_division:
     BL pop                      // Pop the result we just pushed
     
     // Save result for re-pushing
-    MOV X21, X0                 // Save result in X21
+    FMOV D21, D0                 // Save result in X21
     
     // Print the value
-    FMOV D0, X21                // Move result to D0
+    FMOV D0, D21                // Move result to D0
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Print using printf
     
     // Push result back to stack
-    MOV X0, X21                 // Restore result from X21
+    FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
     
     B clac_loop                 // Branch back to input loop
@@ -435,5 +439,6 @@ add_op:          .asciz " + "                // Addition operator
 sub_op:          .asciz " - "                // Subtraction operator
 mul_op:          .asciz " * "                // Multiplication operator
 div_op:          .asciz " / "                // Division operator
+gpioRegAddr: .quad 0
 
 .end	// End of program
