@@ -58,8 +58,8 @@ _start:
 	LDR X1, =gpioRegAddr	// load gpio virtual address storage
 	STR X9, [X1]			// saving virtual address into storage
     
-    MOV X0, #DATA_SZ
-    MOV X1, #STACK_SZ
+    MOV X1, #DATA_SZ
+    MOV X0, #STACK_SZ
     BL stackConstructor
 
     // Initialize calculator variables
@@ -97,15 +97,7 @@ clac_loop:
     LDRB W0, [X1]               // Load the character back into W0
     
     // Check if character is an operator or Enter
-    CMP W0, #'+'                // Compare with addition operator
-    B.EQ do_addition            // Branch to addition if equal
-    CMP W0, #'-'                // Compare with subtraction operator
-    B.EQ do_subtraction         // Branch to subtraction if equal
-    CMP W0, #'x'                // Compare with multiplication operator
-    B.EQ do_multiplication      // Branch to multiplication if equal
-    CMP W0, #'/'                // Compare with division operator
-    B.EQ do_division            // Branch to division if equal
-    CMP W0, #'E'                // Compare with Enter key
+    CMP W0, #' '                // Compare with Enter key
     B.EQ process_enter          // Branch to process_enter if equal
     
     // Not an operator or Enter, must be a digit or decimal point - add to buffer
@@ -125,6 +117,19 @@ clac_loop:
 
 // Process Enter key - push number to stack
 process_enter:
+	SUB X2, X2, #1
+    LDR X3, =input_buffer       // Load address of input buffer
+    STRB W0, [X3, X2]           // Store character at buffer[index]
+
+    CMP W0, #'+'                // Compare with addition operator
+    B.EQ do_addition            // Branch to addition if equal
+    CMP W0, #'-'                // Compare with subtraction operator
+    B.EQ do_subtraction         // Branch to subtraction if equal
+    CMP W0, #'x'                // Compare with multiplication operator
+    B.EQ do_multiplication      // Branch to multiplication if equal
+    CMP W0, #'/'                // Compare with division operator
+    B.EQ do_division            // Branch to division if equal
+
     // Process Enter - convert buffer to number and push to stack
     LDR X0, =input_buffer       // Load address of input buffer
     LDR X1, [X0]                // Load first word of buffer to check if empty
@@ -134,33 +139,19 @@ process_enter:
     B.EQ clac_loop              // If empty, branch back to input loop
     
     // Convert string to floating point
-    LDR X0, =input_buffer       // Load buffer address for conversion
-    BL putstring
+    //LDR X0, =input_buffer       // Load buffer address for conversion
+    //BL putstring
     LDR X0, =input_buffer
     BL cstr2dfp                 // Call cstr2dfp to convert string to floating point
     
     // Push the converted number to stack
     BL push                     // Call push to add X0 to stack
     
-    // Print the pushed value
-    LDR X0, =stack_peek_msg     // Load "Pushed: " message
-    BL putstring                // Print the message
-    
-    // Print the number we just pushed by popping and re-pushing
-    BL pop                      // Pop the value we just pushed
-    
-    // Save the value for re-pushing
-    FMOV D19, D0                 // Save value in X19
-    
     // Print the value
-    FMOV D0, D19                // Move value to D0 for printf
-    LDR X0, =fpFormat           // Load format string into X0
-    BL printf                   // Call printf with format in X0 and value in D0
-    
-    // Push the value back
-    FMOV D0, D19                 // Restore value from X19
-    BL push                     // Push it back to stack
-    
+    //FMOV D0, D19                // Move value to D0 for printf
+    //LDR X0, =fpFormat           // Load format string into X0
+    //BL printf                   // Call printf with format in X0 and value in D0
+        
     // Reset input buffer for next number
     LDR X1, =input_index        // Load address of input index
     MOV X0, #0                  // Set X0 to 0
@@ -350,7 +341,7 @@ do_division:
     FMOV D19, D0                 // Save divisor in X19
     
     // Check for division by zero
-    CMP X19, #0                 // Compare divisor with 0
+    FCMP D19, #0                 // Compare divisor with 0
     B.EQ division_by_zero       // If 0, branch to division by zero error
     
     // Pop second value (dividend)
@@ -425,7 +416,7 @@ done:
     
     // Data section - constant values and buffers
     .data	
-keyMap:          .ascii "123/456x789-.0E+"   // Lookup table mapping 1-16 to ASCII chars
+keyMap:          .ascii "123/456x789-.0 +"   // Lookup table mapping 1-16 to ASCII chars
 char_buffer:     .skip 2                     // Buffer for single character (char + null terminator)
 input_buffer:    .skip 20                    // Buffer for collecting input digits
 input_index:     .quad 0                     // Current index in input buffer
