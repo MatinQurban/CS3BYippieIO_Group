@@ -117,9 +117,11 @@ clac_loop:
 
 // Process Enter key - push number to stack
 process_enter:
-	SUB X2, X2, #1
+	LDR X2, =input_index
+	LDR X2, [X2]
+	SUB X2, X2, #1				// subsract 1 for null
     LDR X3, =input_buffer       // Load address of input buffer
-    STRB W0, [X3, X2]           // Store character at buffer[index]
+    LDRB W0, [X3, X2]           // Store character at buffer[index]
 
     CMP W0, #'+'                // Compare with addition operator
     B.EQ do_addition            // Branch to addition if equal
@@ -132,10 +134,10 @@ process_enter:
 
     // Process Enter - convert buffer to number and push to stack
     LDR X0, =input_buffer       // Load address of input buffer
-    LDR X1, [X0]                // Load first word of buffer to check if empty
-    
+    LDR W1, [X0]                // Load first word of buffer to check if empty
+   
     // Check if buffer is empty
-    CMP X1, #0                  // Compare with 0
+    CMP W1, #0                  // Compare with 0
     B.EQ clac_loop              // If empty, branch back to input loop
     
     // Convert string to floating point
@@ -217,16 +219,24 @@ do_addition:
     FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
     
+    // Reset input buffer for next number
+    LDR X1, =input_index        // Load address of input index
+    MOV X0, #0                  // Set X0 to 0
+    STR X0, [X1]                // Reset index to 0
+    
+    LDR X1, =input_buffer       // Load address of input buffer
+    STRB W0, [X1]               // Reset buffer with null terminator
+    
     B clac_loop                 // Branch back to input loop
     
 // Subtraction operation
 do_subtraction:
-    // Pop first value (subtrahend)
+    // Pop first value
     BL pop                      // Call pop to get first value
     
     FMOV D19, D0                 // Save first value in X19
     
-    // Pop second value (minuend)
+    // Pop second value
     BL pop                      // Call pop to get second value
     
     FMOV D20, D0                 // Save second value in X20
@@ -273,6 +283,14 @@ do_subtraction:
     // Push result back to stack
     FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
+    
+    // Reset input buffer for next number
+    LDR X1, =input_index        // Load address of input index
+    MOV X0, #0                  // Set X0 to 0
+    STR X0, [X1]                // Reset index to 0
+    
+    LDR X1, =input_buffer       // Load address of input buffer
+    STRB W0, [X1]               // Reset buffer with null terminator    
     
     B clac_loop                 // Branch back to input loop
     
@@ -330,6 +348,14 @@ do_multiplication:
     // Push result back to stack
     FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
+    
+    // Reset input buffer for next number
+    LDR X1, =input_index        // Load address of input index
+    MOV X0, #0                  // Set X0 to 0
+    STR X0, [X1]                // Reset index to 0
+    
+    LDR X1, =input_buffer       // Load address of input buffer
+    STRB W0, [X1]               // Reset buffer with null terminator
     
     B clac_loop                 // Branch back to input loop
     
@@ -391,6 +417,14 @@ do_division:
     // Push result back to stack
     FMOV D0, D21                 // Restore result from X21
     BL push                     // Push it back to stack
+    
+    // Reset input buffer for next number
+    LDR X1, =input_index        // Load address of input index
+    MOV X0, #0                  // Set X0 to 0
+    STR X0, [X1]                // Reset index to 0
+    
+    LDR X1, =input_buffer       // Load address of input buffer
+    STRB W0, [X1]               // Reset buffer with null terminator
     
     B clac_loop                 // Branch back to input loop
 
