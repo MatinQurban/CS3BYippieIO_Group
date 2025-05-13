@@ -49,10 +49,16 @@
 _start:
 
     .EQU SYS_exit, 93           // Linux exit syscall number
+    .EQU DATA_SZ, 8
+    .EQU STACK_SZ, 100
     
     .text   // code section
         
     initializePins 		        // Macro: configure and map GPIO pins for keypad scanning
+    
+    MOV X0, #DATA_SZ
+    MOV X1, #STACK_SZ
+    BL stackConstructor
 
     // Initialize calculator variables
     LDR X1, =input_buffer       // Load address of input buffer into X1
@@ -125,6 +131,8 @@ process_enter:
     
     // Convert string to floating point
     LDR X0, =input_buffer       // Load buffer address for conversion
+    BL putstring
+    LDR X0, =input_buffer
     BL cstr2dfp                 // Call cstr2dfp to convert string to floating point
     
     // Push the converted number to stack
@@ -138,15 +146,15 @@ process_enter:
     BL pop                      // Pop the value we just pushed
     
     // Save the value for re-pushing
-    MOV X19, X0                 // Save value in X19
+    FMOV D19, D0                 // Save value in X19
     
     // Print the value
-    FMOV D0, X19                // Move value to D0 for printf
+    FMOV D0, D19                // Move value to D0 for printf
     LDR X0, =fpFormat           // Load format string into X0
     BL printf                   // Call printf with format in X0 and value in D0
     
     // Push the value back
-    MOV X0, X19                 // Restore value from X19
+    FMOV D0, D19                 // Restore value from X19
     BL push                     // Push it back to stack
     
     // Reset input buffer for next number
@@ -403,6 +411,8 @@ done:
     // Print a newline to separate input and termination
     LDR X0, =szNewline          // Load newline string
     BL putstring                // Print newline
+    
+    BL stackDestructor
 
 	// terminate program
 	MOV X0, #0			        // Set return code to 0 (success)

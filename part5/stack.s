@@ -90,8 +90,8 @@ stackDestructor:
 //			- Store value at stack_ptr
 //			- Increment stack_ptr by data_size
 //			- Return 1
-.global stackPush
-stackPush:
+.global push
+push:
 	STR LR, [SP, #-16]!         // Save LR
 
 	// X0 contains Stack* pointer
@@ -101,7 +101,7 @@ stackPush:
 	LDR X1, [X1]			   // Load value into X1
 	LDR X2, =STACK_TOTAL_SIZE  // X2 = total_size
 	LDR X2, [X2]			   // Load value into X2
-	ADD X3, X1, X2                   // X3 = full_size (end of stack)
+	ADD X3, X1, X2             // X3 = full_size (end of stack)
 
 	// Load stack_ptr
 	LDR X4, =STACK_STACK_PTR   // X4 = stack_ptr
