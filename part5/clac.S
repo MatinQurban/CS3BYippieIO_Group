@@ -49,8 +49,8 @@
 _start:
 
     .EQU SYS_exit, 93           // Linux exit syscall number
-    .EQU DATA_SZ, 8
-    .EQU STACK_SZ, 100
+    .EQU DATA_SZ, 8				// size of data
+    .EQU STACK_SZ, 100			// size of stack
     
     .text   // code section
         
@@ -58,9 +58,9 @@ _start:
 	LDR X1, =gpioRegAddr	// load gpio virtual address storage
 	STR X9, [X1]			// saving virtual address into storage
     
-    MOV X1, #DATA_SZ
-    MOV X0, #STACK_SZ
-    BL stackConstructor
+    MOV X1, #DATA_SZ		// move value of data into X1
+    MOV X0, #STACK_SZ		// move value of stack into X0
+    BL stackConstructor		// call the constructor
 
     // Initialize calculator variables
     LDR X1, =input_buffer       // Load address of input buffer into X1
@@ -100,6 +100,15 @@ clac_loop:
     CMP W0, #' '                // Compare with Enter key
     B.EQ process_enter          // Branch to process_enter if equal
     
+    // Not Enter, reset the enter counter
+    LDR X1, =enter_counter      // Load address of enter counter
+    MOV X0, #0                  // Set X0 to 0
+    STR X0, [X1]                // Reset enter counter to 0
+    
+    // Reload the character since we used X0 for counter reset
+    LDR X1, =char_buffer        // Reload character buffer address
+    LDRB W0, [X1]               // Load the character back into W0
+    
     // Not an operator or Enter, must be a digit or decimal point - add to buffer
     LDR X1, =input_index        // Load address of input index
     LDR X2, [X1]                // Load current index value
@@ -117,9 +126,20 @@ clac_loop:
 
 // Process Enter key - push number to stack
 process_enter:
-	LDR X2, =input_index
-	LDR X2, [X2]
-	SUB X2, X2, #1				// subsract 1 for null
+    // Increment the enter counter
+    LDR X1, =enter_counter      // Load address of enter counter
+    LDR X2, [X1]                // Load current counter value
+    ADD X2, X2, #1              // Increment counter
+    STR X2, [X1]                // Store updated counter
+    
+    // Check if this is the second consecutive Enter
+    CMP X2, #2                  // Compare counter with 2
+    B.EQ done                   // Branch to done if equal (program exit)
+    
+    // First Enter or after processing a number/operator:
+    LDR X2, =input_index
+    LDR X2, [X2]
+    SUB X2, X2, #1              // subtract 1 for null
     LDR X3, =input_buffer       // Load address of input buffer
     LDRB W0, [X3, X2]           // Store character at buffer[index]
 
@@ -141,18 +161,11 @@ process_enter:
     B.EQ clac_loop              // If empty, branch back to input loop
     
     // Convert string to floating point
-    //LDR X0, =input_buffer       // Load buffer address for conversion
-    //BL putstring
     LDR X0, =input_buffer
     BL cstr2dfp                 // Call cstr2dfp to convert string to floating point
     
     // Push the converted number to stack
     BL push                     // Call push to add X0 to stack
-    
-    // Print the value
-    //FMOV D0, D19                // Move value to D0 for printf
-    //LDR X0, =fpFormat           // Load format string into X0
-    //BL printf                   // Call printf with format in X0 and value in D0
         
     // Reset input buffer for next number
     LDR X1, =input_index        // Load address of input index
@@ -166,14 +179,17 @@ process_enter:
 
 // Addition operation
 do_addition:
+    // Reset enter counter after operation
+    LDR X1, =enter_counter		// load counter
+    MOV X0, #0					// move 0
+    STR X0, [X1]				// store 0 in the counter
+
     // Pop first value
     BL pop                      // Call pop to get first value from stack
-    
     FMOV D19, D0                 // Save first value in X19
     
     // Pop second value
     BL pop                      // Call pop to get second value
-    
     FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point addition directly
@@ -231,14 +247,17 @@ do_addition:
     
 // Subtraction operation
 do_subtraction:
+    // Reset enter counter after operation
+    LDR X1, =enter_counter		// load counter
+    MOV X0, #0					// move 0
+    STR X0, [X1]				// store 0 in the counter
+
     // Pop first value
     BL pop                      // Call pop to get first value
-    
     FMOV D19, D0                 // Save first value in X19
     
     // Pop second value
     BL pop                      // Call pop to get second value
-    
     FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point subtraction directly
@@ -296,14 +315,17 @@ do_subtraction:
     
 // Multiplication operation
 do_multiplication:
+    // Reset enter counter after operation
+    LDR X1, =enter_counter		// load counter
+    MOV X0, #0					// move 0
+    STR X0, [X1]				// store 0 in the counter
+
     // Pop first value
     BL pop                      // Call pop to get first value
-    
     FMOV D19, D0                 // Save first value in X19
     
     // Pop second value
     BL pop                      // Call pop to get second value
-    
     FMOV D20, D0                 // Save second value in X20
     
     // Perform floating point multiplication directly
@@ -361,9 +383,13 @@ do_multiplication:
     
 // Division operation
 do_division:
+    // Reset enter counter after operation
+    LDR X1, =enter_counter		// load counter
+    MOV X0, #0					// move 0
+    STR X0, [X1]				// store 0 in the counter
+
     // Pop first value (divisor)
     BL pop                      // Call pop to get divisor
-    
     FMOV D19, D0                 // Save divisor in X19
     
     // Check for division by zero
@@ -372,7 +398,6 @@ do_division:
     
     // Pop second value (dividend)
     BL pop                      // Call pop to get dividend
-    
     FMOV D20, D0                 // Save dividend in X20
     
     // Perform floating point division directly
@@ -448,12 +473,12 @@ done:
 	MOV X8, #SYS_exit           // Set syscall number for exit
 	SVC 0			            // Call Linux to exit
     
-    // Data section - constant values and buffers
-    .data	
+    .data 	// data section
 keyMap:          .ascii "123/456x789-.0 +"   // Lookup table mapping 1-16 to ASCII chars
 char_buffer:     .skip 2                     // Buffer for single character (char + null terminator)
 input_buffer:    .skip 20                    // Buffer for collecting input digits
 input_index:     .quad 0                     // Current index in input buffer
+enter_counter:   .quad 0                     // Counter for consecutive Enter presses
 fpFormat:        .asciz "%.20f\n"            // Format string for printf
 error_div_zero:  .asciz "Error: Division by zero\n" // Error message for division by zero
 calc_msg:        .asciz "Calculation: "      // Prefix for calculation display
